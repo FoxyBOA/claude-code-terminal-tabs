@@ -46,8 +46,8 @@ All three open a terminal in your workspace root and run `claude` immediately.
 |---|---|---|
 | `claudeCodeTerminalTabs.enforceFocusOnSwitch` | `true` | Force focus into terminal when active terminal changes |
 | `claudeCodeTerminalTabs.dismissQuickPick` | `true` | Close open Quick Open before forcing focus |
-| `claudeCodeTerminalTabs.onlyClaudeTerminals` | `true` | Only act on terminals whose name matches `claudePattern` (set `false` to bulldoze every terminal) |
-| `claudeCodeTerminalTabs.claudePattern` | `claude\|·\|\\*` | Regex for detecting Claude Code terminals (case-insensitive) |
+| `claudeCodeTerminalTabs.onlyClaudeTerminals` | `true` | Only act on terminals running Claude Code. Detection: regex on terminal name first; if no match, the terminal's process tree is scanned for a `claude` descendant (cached per terminal). Set `false` to bulldoze every terminal. |
+| `claudeCodeTerminalTabs.claudePattern` | `claude\|·\|\\*` | Fast-path regex for detecting Claude terminals by name (case-insensitive). When a terminal name doesn't match, the process tree is scanned as fallback. |
 | `claudeCodeTerminalTabs.launchCommand` | `claude` | Command run by the New Session action |
 
 ## Commands

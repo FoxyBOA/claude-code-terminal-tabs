@@ -2,7 +2,7 @@
     "name": "claude-code-terminal-tabs",
     "displayName": "Claude Code Terminal Tabs",
     "description": "Browser-like Cmd+1..9 hotkeys, reliable focus, and one-click new sessions for terminals running Claude Code",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "publisher": "FoxyBOA",
     "license": "MIT",
     "icon": "icon.png",
@@ -34,12 +34,12 @@
                 "claudeCodeTerminalTabs.onlyClaudeTerminals": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Only enforce focus for terminals whose name matches `claudePattern`. Set to false to apply the focus-bulldozer to every terminal regardless of what it runs."
+                    "description": "Only enforce focus for terminals running Claude Code. Detection: fast regex on terminal name first; if no match, the process tree is scanned for a `claude` descendant (cached per terminal). Set to false to apply the focus-bulldozer to every terminal regardless of what it runs."
                 },
                 "claudeCodeTerminalTabs.claudePattern": {
                     "type": "string",
                     "default": "claude|·|\\*",
-                    "description": "Regex used to detect Claude Code terminals by terminal name (case-insensitive)."
+                    "description": "Regex used as the fast-path detector for Claude Code terminals (matched against terminal name, case-insensitive). If a terminal name does not match, the process tree is scanned as fallback."
                 },
                 "claudeCodeTerminalTabs.launchCommand": {
                     "type": "string",

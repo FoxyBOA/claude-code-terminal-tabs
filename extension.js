@@ -2,8 +2,12 @@
 'use strict';
 
 const vscode = require('vscode');
+const { exec } = require('child_process');
 
 const CFG_NS = 'claudeCodeTerminalTabs';
+
+/** @type {WeakMap<vscode.Terminal, Promise<boolean>>} */
+const claudeCache = new WeakMap();
 
 /** @returns {RegExp} */
 function compileClaudePattern() {
@@ -18,16 +22,104 @@ function compileClaudePattern() {
 }
 
 /**
- * @param {vscode.Terminal} terminal
+ * @param {string} stdout
+ * @param {boolean} isWin
+ * @returns {Map<string, Array<[string, string]>>}
  */
-function shouldHandle(terminal) {
-    const cfg = vscode.workspace.getConfiguration(CFG_NS);
-    if (!cfg.get('onlyClaudeTerminals', true)) return true;
-    return compileClaudePattern().test(terminal.name);
+function parseProcessList(stdout, isWin) {
+    /** @type {Map<string, Array<[string, string]>>} */
+    const children = new Map();
+    const lines = stdout.split('\n');
+
+    if (isWin) {
+        for (const line of lines) {
+            const cols = line.split(',');
+            if (cols.length < 4) continue;
+            const cmd = cols[1] || '';
+            const ppid = (cols[2] || '').trim();
+            const pid = (cols[3] || '').trim();
+            if (!pid || !ppid || isNaN(Number(pid))) continue;
+            if (!children.has(ppid)) children.set(ppid, []);
+            const arr = children.get(ppid);
+            if (arr) arr.push([pid, cmd]);
+        }
+    } else {
+        for (let i = 1; i < lines.length; i++) {
+            const m = lines[i].match(/^\s*(\d+)\s+(\d+)\s+(.+)$/);
+            if (!m) continue;
+            const pid = m[1], ppid = m[2], cmd = m[3];
+            if (!children.has(ppid)) children.set(ppid, []);
+            const arr = children.get(ppid);
+            if (arr) arr.push([pid, cmd]);
+        }
+    }
+    return children;
 }
 
 /**
- * Dismiss any open quick-pick / command palette, then drive focus into the terminal.
+ * BFS through the process tree rooted at rootPid; resolves true if any descendant
+ * command line matches the pattern.
+ * @param {number} rootPid
+ * @param {RegExp} pattern
+ * @returns {Promise<boolean>}
+ */
+function processTreeContains(rootPid, pattern) {
+    return new Promise((resolve) => {
+        const isWin = process.platform === 'win32';
+        const cmd = isWin
+            ? 'wmic process get ProcessId,ParentProcessId,CommandLine /format:csv'
+            : 'ps -A -o pid,ppid,command';
+
+        exec(cmd, { maxBuffer: 8 * 1024 * 1024 }, (err, stdout) => {
+            if (err) return resolve(false);
+
+            const children = parseProcessList(stdout, isWin);
+            const queue = [String(rootPid)];
+            const visited = new Set([String(rootPid)]);
+            while (queue.length) {
+                const p = queue.shift();
+                if (p === undefined) break;
+                for (const [c, cmdline] of (children.get(p) || [])) {
+                    if (pattern.test(cmdline)) return resolve(true);
+                    if (!visited.has(c)) {
+                        visited.add(c);
+                        queue.push(c);
+                    }
+                }
+            }
+            resolve(false);
+        });
+    });
+}
+
+/**
+ * Decide whether a terminal is hosting Claude Code.
+ * Fast path: regex on terminal name. Fallback: scan process tree for a `claude` descendant.
+ * Cached per terminal in a WeakMap so the ps cost is paid at most once per terminal.
+ * @param {vscode.Terminal} terminal
+ * @returns {Promise<boolean>}
+ */
+async function isClaudeTerminal(terminal) {
+    if (compileClaudePattern().test(terminal.name)) return true;
+
+    let cached = claudeCache.get(terminal);
+    if (cached) return cached;
+
+    cached = (async () => {
+        try {
+            const pid = await terminal.processId;
+            if (!pid) return false;
+            return await processTreeContains(pid, /\bclaude\b/i);
+        } catch (e) {
+            console.error('[claude-code-terminal-tabs] process-tree check failed:', e);
+            return false;
+        }
+    })();
+    claudeCache.set(terminal, cached);
+    return cached;
+}
+
+/**
  * @param {vscode.Terminal} terminal
  */
 async function bulldozerFocus(terminal) {
@@ -62,7 +154,14 @@ function activate(context) {
             if (!terminal) return;
             const cfg = vscode.workspace.getConfiguration(CFG_NS);
             if (!cfg.get('enforceFocusOnSwitch', true)) return;
-            if (!shouldHandle(terminal)) return;
+
+            if (cfg.get('onlyClaudeTerminals', true)) {
+                const isClaude = await isClaudeTerminal(terminal);
+                if (!isClaude) return;
+                // Async check may have taken a moment — bail if user already moved on
+                if (vscode.window.activeTerminal !== terminal) return;
+            }
+
             await bulldozerFocus(terminal);
         })
     );
@@ -97,7 +196,6 @@ function activate(context) {
                 const isWin = process.platform === 'win32';
 
                 if (isWin) {
-                    // PowerShell: run claude, drop back to PS prompt if it exits
                     return new vscode.TerminalProfile({
                         shellPath: 'powershell.exe',
                         shellArgs: ['-NoExit', '-Command', launchCommand]
@@ -105,7 +203,6 @@ function activate(context) {
                 }
 
                 const shell = process.env.SHELL || '/bin/zsh';
-                // Run claude, then exec interactive shell so terminal stays alive
                 return new vscode.TerminalProfile({
                     shellPath: shell,
                     shellArgs: ['-i', '-c', `${launchCommand}; exec "${shell}" -i`]
