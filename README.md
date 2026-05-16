@@ -49,7 +49,7 @@ When Claude finishes a turn, focus snaps to the active terminal so you can keep 
 **Setup** — one-time:
 1. Set `claudeCodeTerminalTabs.autoFocusOnWaitingPrompt` to `true`.
 2. Run command **Install Auto-Focus Hook** (from the Command Palette, or click the link that appears under the setting in Settings UI). It writes the hook into `~/.claude/settings.json` with a confirmation dialog and an automatic `settings.json.bak` backup.
-3. In any running Claude session, type `/hooks` to reload — new sessions pick it up automatically.
+3. **New** Claude sessions pick up the hook automatically. For sessions that were already running, **restart `claude`** — `/hooks` is read-only and Claude's file-watcher doesn't always notice the change (tracked as [anthropics/claude-code#5513](https://github.com/anthropics/claude-code/issues/5513)).
 
 To revert: run **Uninstall Auto-Focus Hook**. It removes our entry while leaving every other hook you may have configured intact.
 

@@ -316,7 +316,8 @@ async function installAutoFocusHook() {
         fs.writeFileSync(CLAUDE_SETTINGS_PATH, JSON.stringify(settings, null, 2) + '\n');
         vscode.window.showInformationMessage(
             'Claude Code Terminal Tabs: auto-focus hook installed. ' +
-            'New Claude Code sessions pick it up automatically; for running sessions, type "/hooks" inside Claude.'
+            'New Claude Code sessions pick it up automatically. ' +
+            'For already-running sessions, restart claude — `/hooks` is read-only and the file-watcher reload is not always reliable.'
         );
     } catch (e) {
         vscode.window.showErrorMessage(`Failed to write ${CLAUDE_SETTINGS_PATH}: ${e.message}`);
