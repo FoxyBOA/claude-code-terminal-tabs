@@ -34,7 +34,7 @@
     "main": "./extension.js",
     "contributes": {
         "configuration": {
-            "title": "Claude Code Terminal Tabs",
+            "title": "Terminal Tabs — Hotkeys, Focus & Claude Code",
             "properties": {
                 "claudeCodeTerminalTabs.enforceFocusOnSwitch": {
                     "type": "boolean",
@@ -60,24 +60,44 @@
                     "type": "string",
                     "default": "claude",
                     "description": "Command to run when starting a new Claude Code session."
+                },
+                "claudeCodeTerminalTabs.autoFocusOnWaitingPrompt": {
+                    "type": "boolean",
+                    "default": false,
+                    "markdownDescription": "Auto-focus the active terminal when Claude Code is waiting for input.\n\nRequires a `Stop` hook in `~/.claude/settings.json` — wire it with one click:\n\n→ [Install Auto-Focus Hook](command:claudeCodeTerminalTabs.installAutoFocusHook)  ·  [Uninstall](command:claudeCodeTerminalTabs.uninstallAutoFocusHook)\n\nFallback: if no hook is installed, the extension also polls the active terminal name against `#claudeCodeTerminalTabs.waitingPromptPattern#` (less reliable — only works when a third-party skill writes attention markers like `*` into the name)."
+                },
+                "claudeCodeTerminalTabs.waitingPromptPattern": {
+                    "type": "string",
+                    "default": "^\\s*\\*",
+                    "description": "Regex matched against the active terminal's name for the polling fallback. Default matches names starting with '*'. Ignored when the Notification hook is set up — that path is more reliable."
                 }
             }
         },
         "commands": [
             {
                 "command": "claudeCodeTerminalTabs.newSession",
-                "title": "Claude Code: New Terminal Session",
-                "category": "Claude Code Terminal Tabs"
+                "title": "New Terminal Session",
+                "category": "Terminal Tabs — Hotkeys, Focus & Claude Code"
             },
             {
                 "command": "claudeCodeTerminalTabs.focusActive",
                 "title": "Focus Active Terminal",
-                "category": "Claude Code Terminal Tabs"
+                "category": "Terminal Tabs — Hotkeys, Focus & Claude Code"
             },
             {
                 "command": "claudeCodeTerminalTabs.toggleEnforce",
                 "title": "Toggle Enforce Focus On Switch",
-                "category": "Claude Code Terminal Tabs"
+                "category": "Terminal Tabs — Hotkeys, Focus & Claude Code"
+            },
+            {
+                "command": "claudeCodeTerminalTabs.installAutoFocusHook",
+                "title": "Install Auto-Focus Hook (~/.claude/settings.json)",
+                "category": "Terminal Tabs — Hotkeys, Focus & Claude Code"
+            },
+            {
+                "command": "claudeCodeTerminalTabs.uninstallAutoFocusHook",
+                "title": "Uninstall Auto-Focus Hook (~/.claude/settings.json)",
+                "category": "Terminal Tabs — Hotkeys, Focus & Claude Code"
             }
         ],
         "keybindings": [

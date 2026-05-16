@@ -31,16 +31,29 @@ When the active terminal changes, the extension:
 1. Closes any open Quick Open / command palette
 2. Forces focus into the terminal input
 
-So you can immediately type into Claude without clicking around. Toggle with `claudeCodeTerminalTabs.enforceFocusOnSwitch` or run command **Claude Code Terminal Tabs: Toggle Enforce Focus On Switch**.
+So you can immediately type into Claude without clicking around. Toggle with `claudeCodeTerminalTabs.enforceFocusOnSwitch` or run command **Toggle Enforce Focus On Switch**.
 
 ### One-click new session
 
 Three ways to start a new Claude Code terminal:
 - Hotkey `Cmd+Shift+0`
 - Terminal profile **Claude Code** in the `+ ▾` dropdown next to the terminal tab list
-- Command Palette → **Claude Code: New Terminal Session**
+- Command Palette → **New Terminal Session**
 
 All three open a terminal in your workspace root and run `claude` immediately.
+
+### Auto-focus when Claude finishes a response
+
+When Claude finishes a turn, focus snaps to the active terminal so you can keep typing without clicking back. This is wired through a `Stop` hook in `~/.claude/settings.json`.
+
+**Setup** — one-time:
+1. Set `claudeCodeTerminalTabs.autoFocusOnWaitingPrompt` to `true`.
+2. Run command **Install Auto-Focus Hook** (from the Command Palette, or click the link that appears under the setting in Settings UI). It writes the hook into `~/.claude/settings.json` with a confirmation dialog and an automatic `settings.json.bak` backup.
+3. In any running Claude session, type `/hooks` to reload — new sessions pick it up automatically.
+
+To revert: run **Uninstall Auto-Focus Hook**. It removes our entry while leaving every other hook you may have configured intact.
+
+**Limitation**: Claude's `Notification` event has a built-in delay (~60s) and does not fire for inline "Do you want to proceed?" permission prompts. Auto-focus works for the common "Claude finished, waiting for next prompt" case via `Stop`; mid-task permission prompts still require a manual click. Tracked upstream as [anthropics/claude-code#13922](https://github.com/anthropics/claude-code/issues/13922).
 
 ## Settings
 
@@ -51,12 +64,16 @@ All three open a terminal in your workspace root and run `claude` immediately.
 | `claudeCodeTerminalTabs.onlyClaudeTerminals` | `true` | Only act on terminals running Claude Code. Detection: regex on terminal name first; if no match, the terminal's process tree is scanned for a `claude` descendant (cached per terminal). Set `false` to bulldoze every terminal. |
 | `claudeCodeTerminalTabs.claudePattern` | `claude\|·\|\\*` | Fast-path regex for detecting Claude terminals by name (case-insensitive). When a terminal name doesn't match, the process tree is scanned as fallback. |
 | `claudeCodeTerminalTabs.launchCommand` | `claude` | Command run by the New Session action |
+| `claudeCodeTerminalTabs.autoFocusOnWaitingPrompt` | `false` | Auto-focus the active terminal when Claude finishes a response (requires **Install Auto-Focus Hook** to wire the hook into `~/.claude/settings.json`) |
+| `claudeCodeTerminalTabs.waitingPromptPattern` | `^\s*\*` | Fallback regex for detecting a "waiting for input" state by terminal name change (used when the Claude hook is not installed) |
 
 ## Commands
 
-- **Claude Code: New Terminal Session** — open new terminal and run Claude
+- **New Terminal Session** — open new terminal and run Claude
 - **Focus Active Terminal** — manual focus bulldozer
 - **Toggle Enforce Focus On Switch** — flip the auto-focus setting
+- **Install Auto-Focus Hook** — wire the Claude `Stop` hook into `~/.claude/settings.json`
+- **Uninstall Auto-Focus Hook** — remove our hook from `~/.claude/settings.json` (preserves all other hooks)
 
 ## Installation
 
