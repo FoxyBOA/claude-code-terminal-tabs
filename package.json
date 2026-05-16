@@ -1,8 +1,8 @@
 {
     "name": "claude-code-terminal-tabs",
-    "displayName": "Claude Code Terminal Tabs",
-    "description": "Browser-like Cmd+1..9 hotkeys, reliable focus, and one-click new sessions for terminals running Claude Code",
-    "version": "0.1.5",
+    "displayName": "Terminal Tabs — Hotkeys, Focus & Claude Code",
+    "description": "Browser-like Ctrl/Cmd+1..9 hotkeys to switch terminals. Reliable focus on terminal click (no more accidentally typing into Quick Open). One-click new Claude Code sessions via hotkey, terminal profile, and command palette.",
+    "version": "0.1.6",
     "publisher": "FoxyBOA",
     "license": "MIT",
     "icon": "icon.png",
@@ -14,7 +14,22 @@
         "vscode": "^1.74.0"
     },
     "categories": ["Other"],
-    "keywords": ["claude", "claude-code", "terminal", "tabs", "focus"],
+    "keywords": [
+        "terminal",
+        "tabs",
+        "terminal tabs",
+        "switch",
+        "hotkey",
+        "browser",
+        "focus",
+        "quick-switch",
+        "multi-terminal",
+        "cmd+1",
+        "ctrl+1",
+        "claude",
+        "claude-code",
+        "session"
+    ],
     "activationEvents": ["onStartupFinished"],
     "main": "./extension.js",
     "contributes": {

@@ -1,16 +1,18 @@
-# Claude Code Terminal Tabs
+# Terminal Tabs — Hotkeys, Focus & Claude Code
 
-Browser-like hotkeys and reliable focus for terminals running [Claude Code](https://claude.com/claude-code) in VS Code.
+Browser-like hotkeys and reliable focus for VS Code terminals — with built-in [Claude Code](https://claude.com/claude-code) integration.
 
 ## Why?
 
-If you have multiple Claude Code sessions running in separate terminals, switching between them in VS Code is awkward:
+If you keep multiple terminals open in VS Code, switching between them is awkward:
 
 - No default keyboard shortcut for jumping to terminal N
-- Switching sometimes leaves focus on a stray quick-pick or palette, not the terminal input
-- Spawning a fresh Claude session is "toggle panel → new terminal → type `claude`"
+- Clicks sometimes leave focus on a stray Quick Open / palette instead of the terminal input
+- Spawning a fresh Claude Code session is "toggle panel → new terminal → type `claude`"
 
 This extension fixes all three.
+
+The first two features work for **any** terminal (`tail -f`, dev servers, REPLs, shells). The Claude Code integration (one-click new session, terminal profile, name-aware filtering) is the cherry on top.
 
 ## Features
 
